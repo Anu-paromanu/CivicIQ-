@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "CivicReport": {
+      "title": "CivicReport",
+      "description": "A municipal issue or hazard reported by a citizen, analyzed by AI, and resolved by city departments or contractors.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "gpsAddress": { "type": "string" },
+        "priority": { "type": "string" },
+        "status": { "type": "string" },
+        "department": { "type": "string" },
+        "estimatedCost": { "type": "number" },
+        "severity": { "type": "number" },
+        "contractor": { "type": "string" },
+        "reporterName": { "type": "string" },
+        "reportedAt": { "type": "string" },
+        "upvotes": { "type": "number" },
+        "isVerified": { "type": "boolean" },
+        "isEmergency": { "type": "boolean" },
+        "sentimentScore": { "type": "string" },
+        "fraudDetected": { "type": "boolean" },
+        "aiSummary": { "type": "string" },
+        "history": { "type": "array" }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "category",
+        "latitude",
+        "longitude",
+        "gpsAddress",
+        "priority",
+        "status",
+        "department",
+        "estimatedCost",
+        "severity",
+        "contractor",
+        "reporterName",
+        "reportedAt",
+        "upvotes",
+        "isVerified",
+        "isEmergency",
+        "sentimentScore",
+        "fraudDetected",
+        "aiSummary",
+        "history"
+      ]
+    }
+  },
+  "firestore": {
+    "/reports/{reportId}": {
+      "schema": "CivicReport",
+      "description": "Collection of all reported municipal hazards, issues, and workflow tracking items."
+    }
+  }
+}

@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global safety net default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Hardened ID validation helper
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+    
+    // Complete validation blueprint for a CivicReport document shape
+    function isValidCivicReport(data) {
+      return data.id is string && data.id.size() <= 100
+        && data.title is string && data.title.size() <= 200
+        && data.description is string && data.description.size() <= 5000
+        && data.category is string && data.category.size() <= 100
+        && data.gpsAddress is string && data.gpsAddress.size() <= 500
+        && data.latitude is number && data.latitude >= -90.0 && data.latitude <= 90.0
+        && data.longitude is number && data.longitude >= -180.0 && data.longitude <= 180.0
+        && data.priority is string && data.priority.size() <= 50
+        && data.status is string && data.status.size() <= 50
+        && data.department is string && data.department.size() <= 200
+        && data.estimatedCost is number && data.estimatedCost >= 0
+        && data.severity is number && data.severity >= 0 && data.severity <= 100
+        && data.contractor is string && data.contractor.size() <= 200
+        && data.reporterName is string && data.reporterName.size() <= 200
+        && data.reportedAt is string && data.reportedAt.size() <= 100
+        && data.upvotes is number && data.upvotes >= 0
+        && data.isVerified is bool
+        && data.isEmergency is bool
+        && data.sentimentScore is string && data.sentimentScore.size() <= 50
+        && data.fraudDetected is bool
+        && data.aiSummary is string && data.aiSummary.size() <= 1000
+        && (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 1000))
+        && data.history is list && data.history.size() <= 500;
+    }
+    
+    match /reports/{reportId} {
+      // Readable for maps and active dashboards
+      allow read: if true;
+      
+      // Strict layout verification on create
+      allow create: if isValidId(reportId) && isValidCivicReport(incoming());
+      
+      // Strict update rules matching action-based updates
+      allow update: if isValidId(reportId) && isValidCivicReport(incoming()) && (
+        // Action: upvote
+        (incoming().diff(existing()).affectedKeys().hasOnly(['upvotes', 'history'])) ||
+        // Action: status changes
+        (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'isVerified', 'history'])) ||
+        // Action: full update
+        (incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'description', 'category', 'imageUrl', 'latitude', 'longitude', 
+          'gpsAddress', 'priority', 'status', 'department', 'estimatedCost', 
+          'severity', 'contractor', 'reporterName', 'reportedAt', 'upvotes', 
+          'isVerified', 'isEmergency', 'sentimentScore', 'fraudDetected', 
+          'aiSummary', 'history'
+        ]))
+      );
+      
+      allow delete: if false;
+    }
+  }
+}
